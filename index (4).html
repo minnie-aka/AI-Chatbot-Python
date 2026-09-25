@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Pet Product Advisor</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .chat-container { width: 420px; height: 600px; backdrop-filter: blur(15px); background: rgba(255,255,255,0.1); border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
+        .header { padding: 15px; text-align: center; color: white; font-weight: bold; background: rgba(0,0,0,0.2); }
+        #chat { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { padding: 10px 14px; border-radius: 15px; max-width: 70%; font-size: 14px; line-height: 1.4; }
+        .user { align-self: flex-end; background: #4facfe; color: white; }
+        .bot { align-self: flex-start; background: white; color: #333; }
+        .input-area { display: flex; padding: 10px; background: rgba(0,0,0,0.2); }
+        input { flex: 1; padding: 10px; border-radius: 10px; border: none; outline: none; }
+        button { margin-left: 10px; padding: 10px 20px; border: none; border-radius: 10px; background: #4facfe; color: white; cursor: pointer; font-weight: bold; }
+        button:hover { background: #008ef1; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="header">🐾 AI Pet Advisor</div>
+    <div id="chat"></div>
+    <div class="input-area">
+        <input id="input" placeholder="Ask about your pet..." autocomplete="off">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    const inputField = document.getElementById("input");
+    const chatBox = document.getElementById("chat");
+
+    inputField.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") sendMessage();
+    });
+
+    function appendMessage(text, type) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `message ${type}`;
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMessage() {
+        const message = inputField.value.trim();
+        if (!message) return;
+
+        appendMessage(message, 'user');
+        inputField.value = "";
+
+        // Calling the full local URL to ensure connectivity
+        fetch("http://127.0.0.1:5000/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: message })
+        })
+        .then(res => res.json())
+        .then(data => {
+            appendMessage(data.reply, 'bot');
+        })
+        .catch(err => {
+            console.error("ERROR:", err);
+            appendMessage("Error: Could not connect to the Python backend. Make sure app.py is running.", 'bot');
+        });
+    }
+</script>
+
+</body>
+</html>
